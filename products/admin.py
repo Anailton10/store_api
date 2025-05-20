@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Categories, Products, Buy, Cart, CartItem
+
+from .models import Buy, Categories, Products
 
 
 @admin.register(Categories)
@@ -20,19 +21,6 @@ class BuyAdmin(admin.ModelAdmin):
     list_display = ('id', 'product', 'quantity', 'total_buy')
     list_filter = ('product',)
     search_fields = ('product__name',)
-
-
-class CartItemInline(admin.TabularInline):
-    model = CartItem
-    extra = 0
-
-
-@admin.register(Cart)
-class CartAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'session_id', 'is_activate', 'created_at')
-    list_filter = ('is_activate', 'created_at')
-    search_fields = ('user__username', 'session_id')
-    inlines = [CartItemInline]
 
 
 # @admin.register(CartItem)
