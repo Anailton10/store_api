@@ -5,13 +5,13 @@ from .models import Cart, CartItem
 from .serializers import CartItemSerializer, CartSerializer
 
 
-class CartListCreateView(generics.ListCreateAPIView):
+class CartListView(generics.ListAPIView):
 
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
 
-class CartRetrieveDestroyView(generics.RetrieveDestroyAPIView):
+class CartDestroyView(generics.DestroyAPIView):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
