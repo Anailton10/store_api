@@ -29,7 +29,7 @@ class Command(BaseCommand):
                 category = row['category']
                 price = row['price']
                 stock = row['stock']
-                description = ['description']
+                description = row['description']
 
                 self.stdout.write(self.style.NOTICE(name))
 
