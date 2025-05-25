@@ -26,25 +26,33 @@ class Command(BaseCommand):
             # percore cada linha do arquivo .csv
             for row in reader:
                 name = row['name']  # pegando o nome
-                category = row['category']
-                price = row['price']
-                stock = row['stock']
+                category_name = row['category']
+                price = float(row['price'])
+                stock = int(row['stock'])
                 description = row['description']
 
                 self.stdout.write(self.style.NOTICE(name))
 
                 try:
-                    category = Categories.objects.filter(name=category).first()
+                    # Primeiro, obtém ou cria a categoria
+                    category = Categories.objects.filter(name=category_name).first()
+
+                    # Depois, filtra o produto usando o objeto de categoria
+                    product = Products.objects.filter(name=name, category=category).first()
+
                     if not category:
-                        # Cadastrando os atores na model
-                        Categories.objects.create(name=category)
-                    Products.objects.create(
-                        name=name,
-                        category=category,
-                        price=price,
-                        stock=stock,
-                        description=description
-                    )
+                        category = Categories.objects.create(name=category_name)
+                    if product is None:
+                        Products.objects.create(
+                            name=name,
+                            category=category,
+                            price=price,
+                            stock=stock,
+                            description=description
+                        )
+                    else:
+                        product.stock += stock
+                        product.save()
                 except Exception as e:
                     self.stderr.write(f'Erro ao importar produto: {e}')
             self.stdout.write(self.style.SUCCESS(
