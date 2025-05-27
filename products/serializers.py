@@ -14,7 +14,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Categories
-        fields = ('name', )
+        fields = ('id', 'name', )
 
 
 class BuySerializer(serializers.ModelSerializer):

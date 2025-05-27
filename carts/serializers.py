@@ -56,7 +56,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
-        fields = ('user', 'session_id', 'is_activate', 'product',)
+        fields = ('id', 'user', 'session_id', 'is_activate', 'product',)
         read_only_fields = ('user', 'session_id', 'is_activate',)
         items = CartItemSerializer(many=True, read_only=True)
 
@@ -73,5 +73,6 @@ class CartSerializer(serializers.ModelSerializer):
                 cart = Cart.objects.get(id=cart_id)
             else:
                 cart = Cart.objects.create()
-                session['cart_id'] = cart_id
+                session['cart_id'] = cart.id
+                session.save()
                 return cart

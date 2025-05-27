@@ -21,31 +21,35 @@ class CartItemsListCreateView(generics.ListCreateAPIView):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
 
-    # função ideal para customizar o que acontece após a validação do serializer
+    # função para customizar o que acontece após a validação do serializer
     def perform_create(self, serializer):
-        try:
-            request = self.request
-            user = request.user
-            session = request.session
+        request = self.request
+        user = request.user
+        session = request.session
 
+        if not session.session_key:
+            session.save()  # força a criação da sessão se necessário
+
+        try:
             if user.is_authenticated:
-                try:
-                    cart = Cart.objects.get(user=user)
-                except Cart.DoesNotExist:
-                    cart = Cart.objects.create(user=user)
+                cart, _ = Cart.objects.get_or_create(
+                    user=user, is_activate=True)
             else:
                 cart_id = session.get('cart_id')
                 if cart_id:
-                    cart = Cart.objects.get(id=cart_id)
+                    try:
+                        cart = Cart.objects.get(id=cart_id, user__isnull=True)
+                    except Cart.DoesNotExist:
+                        pass
                 else:
-                    cart = Cart.objects.create()
+                    cart = Cart.objects.create(session_id=session.session_key)
                     session['cart_id'] = cart.id
+                    session.save()  # salva para garantir persistência
+
             serializer.save(cart=cart)
-        except Cart.DoesNotExist:
-            raise exceptions.ValidationError('Carrinho não encontrado')
+
         except Exception as e:
-            raise exceptions.ValidationError(
-                f"Ocorreu um erro ao adicionar o item: {str(e)}")
+            raise exceptions.ValidationError(f"Ocorreu um erro: {str(e)}")
 
 
 class CartItemsRetrieveDestroyView(generics.RetrieveDestroyAPIView):
