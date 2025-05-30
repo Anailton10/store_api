@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, views_checkout
+from . import views
 
 urlpatterns = [
     path('cart/', view=views.CartListView.as_view(), name='cart-create-list'),
