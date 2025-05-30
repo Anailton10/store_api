@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Cart, CartItem, Buy
+from .models import Cart, CartItem
 
 
 class CartItemSerializer(serializers.ModelSerializer):

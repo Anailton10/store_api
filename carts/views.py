@@ -1,34 +1,23 @@
 from django.core import exceptions
-from django.db import transaction
-from rest_framework import generics, status
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics
 
 from .models import Cart, CartItem
-from .serializers import BuySerializer, CartItemSerializer, CartSerializer
+from .serializers import CartItemSerializer, CartSerializer
 
 
 class CartListView(generics.ListAPIView):
 
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
-    # Apenas o propio usuario pode acessar seu carrinho
-
-    def get_queryset(self):
-        return Cart.objects.filter(user=self.request.user, is_activate=True)
 
 
 class CartDestroyView(generics.DestroyAPIView):
-
-    permission_classes = (IsAuthenticated,)
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
 
 class CartItemsListCreateView(generics.ListCreateAPIView):
 
-    permission_classes = (AllowAny,)
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
 
@@ -65,57 +54,5 @@ class CartItemsListCreateView(generics.ListCreateAPIView):
 
 class CartItemsRetrieveDestroyView(generics.RetrieveDestroyAPIView):
 
-    permission_classes = (IsAuthenticated,)
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
-
-
-class CheckoutView(APIView):
-
-    permission_classes = (IsAuthenticated,)
-
-    # Apenas o propio usuario pode fazer seu checkout
-    def get_queryset(self):
-        return Cart.objects.filter(user=self.request.user, is_activate=True)
-
-    def post(self, request):
-        user = request.user
-
-        try:
-            if not user.is_authenticated:
-                return Response({'erro': 'Usuário precisa estar logado para finalizar a compra'}, status=status.HTTP_401_UNAUTHORIZED)
-
-            cart = Cart.objects.filter(user=user, is_activate=True).first()
-
-            cart_items = CartItem.objects.filter(cart=cart)
-
-            if not cart:
-                return Response({'erro': "Carrinho não encontrado"}, status=status.HTTP_404_NOT_FOUND)
-
-            if not cart_items.exists():
-                return Response({'erro': 'Carrinho está vazio.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # transaction.atomic garante que todas as movimentações sejam feitas, caso contrário não acontece nenhuma transação
-            with transaction.atomic():
-                for item in cart_items:
-                    # Prepara os dados da compra com ID do produto e quantidade
-                    buy_data = {
-                        'product': item.product.id,
-                        'quantity': item.quantity,
-                    }
-
-                    # Instancia o serializer da compra para validar os dados e salvar
-                    serializer = BuySerializer(data=buy_data)
-                    if serializer.is_valid():
-                        serializer.save()
-                    else:
-                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-                    # Marca o carrinho como finalizado para evitar reutilização futura
-                    cart.is_activate = False
-                    cart.save()
-
-            return Response({'mensagem': 'Compra realizado com sucesso.'}, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response({"Erro": f"Ocorreu um erro {str(e)}."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
