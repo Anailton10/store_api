@@ -16,6 +16,4 @@ urlpatterns = [
     path('categories/<int:pk>/',
          view=views.CategoryRetriverUpdateView.as_view(),
          name='category-detail-delete'),
-
-    path('buy/', view=views.BuyCreateView.as_view(), name='buy-create'),
 ]

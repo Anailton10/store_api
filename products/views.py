@@ -1,8 +1,7 @@
 from rest_framework import generics
 
-from .models import Buy, Categories, Products
-from .serializers import (BuySerializer, CategoriesSerializer,
-                          ProductsSerializer)
+from .models import Categories, Products
+from .serializers import CategoriesSerializer, ProductsSerializer
 
 
 class ProductCreateListView(generics.ListCreateAPIView):
@@ -25,6 +24,6 @@ class CategoryRetriverUpdateView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategoriesSerializer
 
 
-class BuyCreateView(generics.CreateAPIView):
-    queryset = Buy.objects.all()
-    serializer_class = BuySerializer
+# class BuyCreateView(generics.CreateAPIView):
+#     queryset = Buy.objects.all()
+#     serializer_class = BuySerializer
