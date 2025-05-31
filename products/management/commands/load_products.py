@@ -6,7 +6,6 @@ from products.models import Categories, Products
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument(
             'file_name',
@@ -35,27 +34,31 @@ class Command(BaseCommand):
                 try:
                     # Primeiro, obtém ou cria a categoria
                     category = Categories.objects.filter(
-                        name=category_name).first()
+                        name=category_name
+                    ).first()
 
                     # Depois, filtra o produto usando o objeto de categoria
                     product = Products.objects.filter(
-                        name=name, category=category).first()
+                        name=name, category=category
+                    ).first()
 
                     if not category:
                         category = Categories.objects.create(
-                            name=category_name)
+                            name=category_name
+                        )
                     if product is None:
                         Products.objects.create(
                             name=name,
                             category=category,
                             price=price,
                             stock=stock,
-                            description=description
+                            description=description,
                         )
                     else:
                         product.stock += stock
                         product.save()
                 except Exception as e:
                     self.stderr.write(f'Erro ao importar produto: {e}')
-            self.stdout.write(self.style.SUCCESS(
-                'PRODUTOS IMPORTADOS COM SUCESSO!!'))
+            self.stdout.write(
+                self.style.SUCCESS('PRODUTOS IMPORTADOS COM SUCESSO!!')
+            )

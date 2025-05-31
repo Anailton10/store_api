@@ -6,12 +6,18 @@ from .models import Buy, Cart, CartItem
 class CartItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.CharField(
-        source='product.price', read_only=True)
+        source='product.price', read_only=True
+    )
 
     class Meta:
         model = CartItem
-        fields = ('cart', 'product', 'product_name',
-                  'product_price', 'quantity',)
+        fields = (
+            'cart',
+            'product',
+            'product_name',
+            'product_price',
+            'quantity',
+        )
         read_only_fields = ('cart',)
 
     def validate_quantity(self, value):
@@ -27,8 +33,10 @@ class CartItemSerializer(serializers.ModelSerializer):
 
         if quantity > product.stock:
             raise serializers.ValidationError(
-                {'quantity': 'Estoque insuficiente para quantidade informada',
-                 'product': f'{product.name}'}
+                {
+                    'quantity': 'Estoque insuficiente para quantidade informada',
+                    'product': f'{product.name}',
+                }
             )
         return attrs
 
@@ -54,7 +62,8 @@ class CartItemSerializer(serializers.ModelSerializer):
                 return item
         except Exception as e:
             raise serializers.ValidationError(
-                f'Occorreu um erro ao criar o item: {str(e)}')
+                f'Occorreu um erro ao criar o item: {str(e)}'
+            )
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -65,15 +74,24 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ('id', 'user', 'session_id',
-                  'is_activate', 'items', 'total',)
-        read_only_fields = ('user', 'session_id', 'is_activate',)
+        fields = (
+            'id',
+            'user',
+            'session_id',
+            'is_activate',
+            'items',
+            'total',
+        )
+        read_only_fields = (
+            'user',
+            'session_id',
+            'is_activate',
+        )
         cart_items = CartItemSerializer(many=True, read_only=True)
 
     def get_total(self, obj):
         items = CartItem.objects.filter(cart=obj)
-        total_cart = sum(item.product.price *
-                         item.quantity for item in items)
+        total_cart = sum(item.product.price * item.quantity for item in items)
         return total_cart
 
     def get_items(self, obj):
@@ -101,7 +119,7 @@ class CartSerializer(serializers.ModelSerializer):
 class CartHistorySerializer(serializers.ModelSerializer):
     items = serializers.SerializerMethodField()
     total = serializers.SerializerMethodField()
-    created_at = serializers.DateTimeField(format="%d/%m/%Y %H:%M")
+    created_at = serializers.DateTimeField(format='%d/%m/%Y %H:%M')
 
     class Meta:
         model = Cart
@@ -117,7 +135,6 @@ class CartHistorySerializer(serializers.ModelSerializer):
 
 
 class BuySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Buy
         fields = ('product', 'quantity', 'total_buy')
@@ -129,9 +146,11 @@ class BuySerializer(serializers.ModelSerializer):
 
         if quantity >= product.stock:
             raise serializers.ValidationError(
-                {'product': f'{product.name}',
-                 'stock': f'{product.stock}',
-                 'erro': f'Não há estoque para o valor informado: {quantity}'}
+                {
+                    'product': f'{product.name}',
+                    'stock': f'{product.stock}',
+                    'erro': f'Não há estoque para o valor informado: {quantity}',
+                }
             )
         return super().validate(attrs)
 

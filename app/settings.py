@@ -9,7 +9,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2bv=1a0ii7m9y$!g326drz5x#*h5@^k@kw)g!bdaf85946u7cj'
+SECRET_KEY = (
+    'django-insecure-2bv=1a0ii7m9y$!g326drz5x#*h5@^k@kw)g!bdaf85946u7cj'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -26,14 +28,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'rest_framework_simplejwt',
-
     'products',
     'carts',
     'authentication',
-
 ]
 
 MIDDLEWARE = [
@@ -122,9 +121,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
-
     'DEFAULT_AUTHENTICATION_CLASSES': (
-
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
@@ -132,6 +129,6 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # estipula o tempo e access
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Estipula o tempo do refresh
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Estipula o tempo do refresh
 }

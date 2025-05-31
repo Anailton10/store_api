@@ -6,13 +6,17 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Cart, CartItem
-from .serializers import (BuySerializer, CartHistorySerializer,
-                          CartItemSerializer, CartSerializer)
+from .serializers import (
+    BuySerializer,
+    CartHistorySerializer,
+    CartItemSerializer,
+    CartSerializer,
+)
 
 
 class CartListView(generics.ListAPIView):
 
-    permission_classes = (AllowAny, )
+    permission_classes = (AllowAny,)
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
@@ -33,7 +37,9 @@ class CartHistoryView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Cart.objects.filter(user=user, is_activate=False).order_by('-created_at')
+        return Cart.objects.filter(user=user, is_activate=False).order_by(
+            '-created_at'
+        )
 
 
 class CartDestroyView(generics.DestroyAPIView):
@@ -61,7 +67,8 @@ class CartItemsListCreateView(generics.ListCreateAPIView):
         try:
             if user.is_authenticated:
                 cart, _ = Cart.objects.get_or_create(
-                    user=user, is_activate=True)
+                    user=user, is_activate=True
+                )
             else:
                 cart_id = session.get('cart_id')
                 if cart_id:
@@ -76,7 +83,7 @@ class CartItemsListCreateView(generics.ListCreateAPIView):
             serializer.save(cart=cart)
 
         except Exception as e:
-            raise exceptions.ValidationError(f"Ocorreu um erro: {str(e)}")
+            raise exceptions.ValidationError(f'Ocorreu um erro: {str(e)}')
 
 
 class CartItemsRetrieveDestroyView(generics.RetrieveDestroyAPIView):
@@ -99,17 +106,28 @@ class CartCheckoutView(APIView):
 
         try:
             if not user.is_authenticated:
-                return Response({'erro': 'Usuário precisa estar logado para finalizar a compra'}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response(
+                    {
+                        'erro': 'Usuário precisa estar logado para finalizar a compra'
+                    },
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
 
             cart = Cart.objects.filter(user=user, is_activate=True).first()
 
             cart_items = CartItem.objects.filter(cart=cart)
 
             if not cart:
-                return Response({'erro': "Carrinho não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {'erro': 'Carrinho não encontrado'},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
             if not cart_items.exists():
-                return Response({'erro': 'Carrinho está vazio.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'erro': 'Carrinho está vazio.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             # transaction.atomic garante que todas as movimentações sejam feitas, caso contrário não acontece nenhuma transação
             with transaction.atomic():
@@ -127,13 +145,22 @@ class CartCheckoutView(APIView):
                     if serializer.is_valid():
                         serializer.save(cart=cart)
                     else:
-                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                        return Response(
+                            serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
 
                     # Marca o carrinho como finalizado para evitar reutilização futura
                     cart.is_activate = False
                     cart.save()
 
-            return Response({'mensagem': 'Compra realizado com sucesso.'}, status=status.HTTP_201_CREATED)
+            return Response(
+                {'mensagem': 'Compra realizado com sucesso.'},
+                status=status.HTTP_201_CREATED,
+            )
 
         except Exception as e:
-            return Response({"Erro": f"Ocorreu um erro {str(e)}."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'Erro': f'Ocorreu um erro {str(e)}.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
