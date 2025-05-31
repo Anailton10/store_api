@@ -98,6 +98,24 @@ class CartSerializer(serializers.ModelSerializer):
                 return cart
 
 
+class CartHistorySerializer(serializers.ModelSerializer):
+    items = serializers.SerializerMethodField()
+    total = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(format="%d/%m/%Y %H:%M")
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'created_at', 'items', 'total']
+
+    def get_items(self, obj):
+        cart_items = CartItem.objects.filter(cart=obj)
+        return CartItemSerializer(cart_items, many=True).data
+
+    def get_total(self, obj):
+        cart_items = CartItem.objects.filter(cart=obj)
+        return sum(item.product.price * item.quantity for item in cart_items)
+
+
 class BuySerializer(serializers.ModelSerializer):
 
     class Meta:

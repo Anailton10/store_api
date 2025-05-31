@@ -6,10 +6,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Cart, CartItem
-from .serializers import BuySerializer, CartItemSerializer, CartSerializer
+from .serializers import (BuySerializer, CartHistorySerializer,
+                          CartItemSerializer, CartSerializer)
 
 
 class CartListView(generics.ListAPIView):
+
+    permission_classes = (AllowAny, )
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
 
@@ -22,6 +25,15 @@ class CartListView(generics.ListAPIView):
         else:
             cart_id = session.get('cart_id')
             return Cart.objects.filter(session_id=cart_id, is_activate=True)
+
+
+class CartHistoryView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = CartHistorySerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Cart.objects.filter(user=user, is_activate=False).order_by('-created_at')
 
 
 class CartDestroyView(generics.DestroyAPIView):
@@ -74,7 +86,7 @@ class CartItemsRetrieveDestroyView(generics.RetrieveDestroyAPIView):
     serializer_class = CartItemSerializer
 
 
-class CheckoutView(APIView):
+class CartCheckoutView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
@@ -113,7 +125,7 @@ class CheckoutView(APIView):
                     # Instancia o serializer da compra para validar os dados e salvar
                     serializer = BuySerializer(data=buy_data)
                     if serializer.is_valid():
-                        serializer.save()
+                        serializer.save(cart=cart)
                     else:
                         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
