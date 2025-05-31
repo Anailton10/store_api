@@ -10,13 +10,18 @@ from .serializers import BuySerializer, CartItemSerializer, CartSerializer
 
 
 class CartListView(generics.ListAPIView):
-
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
-    # Apenas o propio usuario pode acessar seu carrinho
 
+    # Apenas o propio usuario pode acessar seu carrinho
     def get_queryset(self):
-        return Cart.objects.filter(user=self.request.user, is_activate=True)
+        user = self.request.user
+        session = self.request.session
+        if user.is_authenticated:
+            return Cart.objects.filter(user=user, is_activate=True)
+        else:
+            cart_id = session.get('cart_id')
+            return Cart.objects.filter(session_id=cart_id, is_activate=True)
 
 
 class CartDestroyView(generics.DestroyAPIView):
@@ -56,7 +61,6 @@ class CartItemsListCreateView(generics.ListCreateAPIView):
                     cart = Cart.objects.create(session_id=session.session_key)
                     session['cart_id'] = cart.id
                     session.save()  # salva para garantir persistência
-
             serializer.save(cart=cart)
 
         except Exception as e:
@@ -101,7 +105,9 @@ class CheckoutView(APIView):
                     # Prepara os dados da compra com ID do produto e quantidade
                     buy_data = {
                         'product': item.product.id,
+                        'cart': item.cart,
                         'quantity': item.quantity,
+                        'total_buy': item.product.price * item.quantity,
                     }
 
                     # Instancia o serializer da compra para validar os dados e salvar

@@ -4,3 +4,4 @@ venv
 __pycache__
 t.py
 db.sqlite3
+**/migrations/

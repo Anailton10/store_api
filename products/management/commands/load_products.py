@@ -5,7 +5,6 @@ from django.core.management.base import BaseCommand
 from products.models import Categories, Products
 
 
-# TODO: Alterar a logica para registrar os productos do arquivo .csv
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
@@ -35,13 +34,16 @@ class Command(BaseCommand):
 
                 try:
                     # Primeiro, obtém ou cria a categoria
-                    category = Categories.objects.filter(name=category_name).first()
+                    category = Categories.objects.filter(
+                        name=category_name).first()
 
                     # Depois, filtra o produto usando o objeto de categoria
-                    product = Products.objects.filter(name=name, category=category).first()
+                    product = Products.objects.filter(
+                        name=name, category=category).first()
 
                     if not category:
-                        category = Categories.objects.create(name=category_name)
+                        category = Categories.objects.create(
+                            name=category_name)
                     if product is None:
                         Products.objects.create(
                             name=name,

@@ -1,13 +1,17 @@
 from rest_framework import serializers
 
-from .models import Cart, CartItem, Buy
+from .models import Buy, Cart, CartItem
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_price = serializers.CharField(
+        source='product.price', read_only=True)
 
     class Meta:
         model = CartItem
-        fields = ('product', 'cart', 'quantity',)
+        fields = ('cart', 'product', 'product_name',
+                  'product_price', 'quantity',)
         read_only_fields = ('cart',)
 
     def validate_quantity(self, value):
@@ -17,16 +21,16 @@ class CartItemSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate(self, data):
-        product = data['product']
-        quantity = data['quantity']
+    def validate(self, attrs):
+        product = attrs['product']
+        quantity = attrs['quantity']
 
         if quantity > product.stock:
             raise serializers.ValidationError(
                 {'quantity': 'Estoque insuficiente para quantidade informada',
                  'product': f'{product.name}'}
             )
-        return data
+        return attrs
 
     def create(self, validated_data):
         try:
@@ -54,11 +58,27 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
+
+    total = serializers.SerializerMethodField()
+    items = serializers.SerializerMethodField()
+    user = serializers.CharField(source='user.username')
+
     class Meta:
         model = Cart
-        fields = ('id', 'user', 'session_id', 'is_activate', 'product',)
+        fields = ('id', 'user', 'session_id',
+                  'is_activate', 'items', 'total',)
         read_only_fields = ('user', 'session_id', 'is_activate',)
-        items = CartItemSerializer(many=True, read_only=True)
+        cart_items = CartItemSerializer(many=True, read_only=True)
+
+    def get_total(self, obj):
+        items = CartItem.objects.filter(cart=obj)
+        total_cart = sum(item.product.price *
+                         item.quantity for item in items)
+        return total_cart
+
+    def get_items(self, obj):
+        items = CartItem.objects.filter(cart=obj)
+        return CartItemSerializer(items, many=True).data
 
     def create(self, validated_data):
 
@@ -85,9 +105,9 @@ class BuySerializer(serializers.ModelSerializer):
         fields = ('product', 'quantity', 'total_buy')
         read_only_fields = ('total_buy',)
 
-    def validate(self, data):
-        product = data['product']
-        quantity = data['quantity']
+    def validate(self, attrs):
+        product = attrs['product']
+        quantity = attrs['quantity']
 
         if quantity >= product.stock:
             raise serializers.ValidationError(
@@ -95,7 +115,7 @@ class BuySerializer(serializers.ModelSerializer):
                  'stock': f'{product.stock}',
                  'erro': f'Não há estoque para o valor informado: {quantity}'}
             )
-        return super().validate(data)
+        return super().validate(attrs)
 
     def validate_quantity(self, value):
 
