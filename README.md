@@ -18,9 +18,10 @@ API RESTful para gerenciamento de uma loja virtual com funcionalidades completas
 ## 📂 Estrutura das Apps
 
 - `products` – Gerenciamento de produtos
-- `carts` – Lógica do carrinho de compras e checkout
-- `buy` – Registro das compras finalizadas
-- `users` – Autenticação e gerenciamento de usuários
+- `categories`- Gerenciamento de categorias
+- `carts` – Lógica do carrinho de compras, checkout e registro das compras finalizadas
+- `accounts` – Registro de usuários 
+- `authentication` – Autenticação e gerenciamento de usuários
 
 ---
 ## 🔐 Autenticação e Cadastro de Usuário
@@ -36,7 +37,7 @@ Permite que qualquer pessoa crie uma conta no sistema.
 ```json
 {
   "username": "novousuario",
-  "email": "usuario@email.com", (opcional)
+  "email": "usuario@email.com",
   "password": "senha123"
 }
 ```
