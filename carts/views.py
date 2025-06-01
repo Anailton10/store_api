@@ -86,7 +86,7 @@ class CartItemsListCreateView(generics.ListCreateAPIView):
             raise exceptions.ValidationError(f'Ocorreu um erro: {str(e)}')
 
 
-class CartItemsRetrieveDestroyView(generics.RetrieveDestroyAPIView):
+class CartItemsRetrieveDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
     permission_classes = (IsAuthenticated,)
     queryset = CartItem.objects.all()
